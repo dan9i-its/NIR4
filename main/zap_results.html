@@ -1,0 +1,98 @@
+{% extends 'main/base.html' %}
+{% block title %}
+Здесь будут резы конкретного скана нуклея 
+{% endblock %}
+{% block content %}
+<h1>Результаты ZAP</h1>
+{% if not zap_triggers%}
+<h1>Уязвимостей не выявлено</h1>
+{% endif %}
+{% for zs in zap_triggers %}
+{% if zs.status == 'Подтверждено'%}
+<div class="alert alert-danger mt-2">
+    <p>Правило:{{zs.rule}} </p>
+    <p>Критичность:{{zs.riskdesc| safe}}</p>
+    <p>Метод: {{zs.instance_metod| safe}}<p>
+    <p>URL : {{zs.instance_url| safe}}</p>
+    <p>Атака: {{zs.instance_attack| safe}}</p>
+    <p>Poc: {{zs.instance_evidence| safe}}</p>
+    <p>Дополнительная информация {{zs.instance_otherinfo| safe}}</p>
+    <p>Текущий статус: {{zs.status| safe}}</p>
+    {% if zs.comment and zs.comment.comment %}
+    <p>Комментарий: {{zs.comment.comment| safe}}</p>
+    <p>Автор: {{zs.comment.User.username}} : {{zs.comment.time}}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <select class="mdb-select md-form" id="status" name="status">
+            <option value="Отклонено">Отклонить</option>
+            <option value="Подтверждено">Подтвердить</option>
+            <option value="Не обработано">Не обработано</option>
+        </select>
+        <p>Комментарий<Br>
+        <textarea name="comment" cols="40" rows="3"></textarea></p>
+        <input type="hidden" name="id" value="{{ zs.id }}">
+        <input type="submit" value="Изменить статус" />
+        <input type="hidden" name="user" value="{{user.id}}">
+    </form>
+</div>
+
+{% elif zs.status == 'Отклонено' %}
+<div class="alert alert-success mt-2">
+    <p>Правило:{{zs.rule}} </p>
+    <p>Критичность:{{zs.riskdesc| safe}}</p>
+    <p>Метод: {{zs.instance_metod| safe}}<p>
+    <p>URL : {{zs.instance_url| safe}}</p>
+    <p>Атака: {{zs.instance_attack| safe}}</p>
+    <p>Poc: {{zs.instance_evidence| safe}}</p>
+    <p>Дополнительная информация {{zs.instance_otherinfo| safe}}</p>
+    <p>Текущий статус: {{zs.status| safe}}</p>
+    {% if zs.comment and zs.comment.comment %}
+    <p>Комментарий: {{zs.comment.comment| safe}}</p>
+    <p>Автор: {{zs.comment.User.username| safe}} : {{zs.comment.time}}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <select class="mdb-select md-form" id="status" name="status">
+            <option value="Отклонено">Отклонить</option>
+            <option value="Подтверждено">Подтвердить</option>
+            <option value="Не обработано">Не обработано</option>
+        </select>
+        <p>Комментарий<Br>
+        <textarea name="comment" cols="40" rows="3"></textarea></p>
+        <input type="hidden" name="id" value="{{ zs.id }}">
+        <input type="submit" value="Изменить статус" />
+        <input type="hidden" name="user" value="{{user.id}}">
+    </form>
+</div>
+{% else %}
+<div class="alert alert-warning mt-2">
+    <p>Правило:{{zs.rule| safe}} </p>
+    <p>Критичность:{{zs.riskdesc| safe}}</p>
+    <p>Метод: {{zs.instance_metod| safe}}<p>
+    <p>URL : {{zs.instance_url| safe}}</p>
+    <p>Атака: {{zs.instance_attack| safe}}</p>
+    <p>Poc: {{zs.instance_evidence| safe}}</p>
+    <p>Дополнительная информация {{zs.instance_otherinfo| safe}}</p>
+    <p>Текущий статус: {{zs.status| safe}}</p>
+    {% if zs.comment and zs.comment.comment %}
+    <p>Комментарий: {{zs.comment.comment| safe}}</p>
+    <p>Автор: {{zs.comment.User.username}} : {{zs.comment.time}}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <select class="mdb-select md-form" id="status" name="status">
+            <option value="Отклонено">Отклонить</option>
+            <option value="Подтверждено">Подтвердить</option>
+            <option value="Не обработано">Не обработано</option>
+        </select>
+        <p>Комментарий<Br>
+        <textarea name="comment" cols="40" rows="3"></textarea></p>
+        <input type="hidden" name="id" value="{{ zs.id }}">
+        <input type="submit" value="Изменить статус" />
+        <input type="hidden" name="user" value="{{user.id}}">
+    </form>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends 'main/base.html' %}
+{% block title %}
+Конфигурирование прокси для session rotation
+{% endblock %}
+{% block content %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+    </head>
+    <body>
+    <div class="container">
+        <h1>Configuration</h1>
+        <form method="post">
+            {% csrf_token %}
+            <label for="ip">IP:</label>
+            <input type="text" id="ip" name="ip" value={{config.IP}}>
+    
+            <label for="port">Port:</label>
+            <input type="text" id="port" name="port"  value={{config.port}}>
+    
+            <label for="logins">Logins:</label>
+            <textarea id="logins" name="logins" rows="4" value={{config.logins}}></textarea>
+
+            <label for="passwords">Passwords:</label>
+            <textarea id="passwords" name="passwords" rows="4" value={{config.passwords}}></textarea>
+
+            <label for="key">Signature Key:</label>
+            <input type="text" id="key" name="key"  value={{config.key}}>
+
+            <label for="expiretime">Expire:</label>
+            <input type="text" id="expiretime" name="expiretime"  value={{config.expiretime}}>
+
+            <label for="csrf_token">CSRF name:</label>
+            <input type="text" id="csrf_name" name="csrf_name"  value={{config.csrf_name}}>
+
+            <label for="csrf_type">Csrf Type:</label>
+            <select id="csrf_type" name="csrf_type">
+                <option value="header">header</option>
+                <option value="param">param</option>
+            </select>
+
+
+            <label for="auth_token_name">Auth token name:</label>
+            <input type="text" id="auth_token_name" name="auth_token_name"  value={{config.auth_token_name}}>
+
+            <label for="auth_token_type">Auth token type:</label>
+            <select id="auth_token_type" name="auth_token_type">
+                <option value="header">header</option>
+                <option value="cookie">cookie</option>
+            </select>
+
+            <label for="token_refresh_end">Token refresh endpoint:</label>
+            <input type="text" id="auth_token_name" name="auth_token_name"  value={{config.token_refresh_end}}>
+
+            <label for="auth_type">Auth type:</label>
+            <input type="text" id="auth_type" name="auth_type"  value={{config.auth_type}}>
+
+
+            <label for="auth_request">Auth request:</label>
+            <textarea id="auth_request" name="auth_request" rows="4" value={{config.auth_request}}></textarea>
+
+            <label for="request_to_csrf">Request to get csrf:</label>
+            <textarea id="request_to_csrf" name="request_to_csrf" rows="4" value={{config.request_to_csrf}}></textarea>
+
+            <label for="login_name">Login name:</label>
+            <input type="text" id="login_name" name="login_name"  value={{config.login_name}}>
+
+            <label for="password_name">Password name:</label>
+            <input type="text" id="password_name" name="password_name"  value={{config.password_name}}>
+
+            <button type="submit">Сохранить</button>
+        </form>
+
+            <label for="period_status">Period Status:</label>
+            <input type="text" id="period_status" name="period_status"  value={{config.period_status}}>
+        <form method="post">
+            {% csrf_token %}
+            {% if config.status == 'running'%}
+            <h1>Запущено</h1>
+            <input type="hidden" id="status" name="status" value="stopped">
+            <button type="submit">Stop Proxy</button>
+            {% else %}
+            <h1>Остановлено</h1>
+            <input type="hidden" id="status" name="status" value="running">
+            <button type="submit">Run Proxy</button>
+            {% endif %}
+        </form>
+
+    </div>
+    </body>
+{% endblock %}

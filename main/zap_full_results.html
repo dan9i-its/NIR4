@@ -1,0 +1,98 @@
+{% extends 'main/base.html' %}
+{% block title %}
+Здесь будут результаты всего скана 
+{% endblock %}
+{% block content %}
+<h1>Все результаты скана ZAP</h1>
+{% if not zap_triggers%}
+<h1>Уязвимостей не выявлено</h1>
+{% endif %}
+{% for zs in zap_triggers %}
+{% if zs.status == 'Подтверждено'%}
+<div class="alert alert-danger mt-2">
+    <p>Правило:{{zs.rule}} </p>
+    <p>Критичность:{{zs.riskdesc}}</p>
+    <p>Метод: {{zs.instance_metod}}<p>
+    <p>URL : {{zs.instance_url}}</p>
+    <p>Атака: {{zs.instance_attack}}</p>
+    <p>Poc: {{zs.instance_evidence}}</p>
+    <p>Дополнительная информация {{zs.instance_otherinfo}}</p>
+    <p>Текущий статус: {{zs.status}}</p>
+    {% if zs.comment and zs.comment.comment %}
+    <p>Комментарий: {{zs.comment.comment}}</p>
+    <p>Автор: {{zs.comment.User.username}} : {{zs.comment.time}}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <select class="mdb-select md-form" id="status" name="status">
+            <option value="Отклонено">Отклонить</option>
+            <option value="Подтверждено">Подтвердить</option>
+            <option value="Не обработано">Не обработано</option>
+        </select>
+        <p>Комментарий<Br>
+        <textarea name="comment" cols="40" rows="3"></textarea></p>
+        <input type="hidden" name="id" value="{{ zs.id }}">
+        <input type="hidden" name="user" value="{{user.id}}">
+        <input type="submit" value="Изменить статус" />
+    </form>
+</div>
+
+{% elif zs.status == 'Отклонено' %}
+<div class="alert alert-success mt-2">
+    <p>Правило:{{zs.rule}} </p>
+    <p>Критичность:{{zs.riskdesc}}</p>
+    <p>Метод: {{zs.instance_metod}}<p>
+    <p>URL : {{zs.instance_url}}</p>
+    <p>Атака: {{zs.instance_attack}}</p>
+    <p>Poc: {{zs.instance_evidence}}</p>
+    <p>Дополнительная информация {{zs.instance_otherinfo}}</p>
+    <p>Текущий статус: {{zs.status}}</p>
+    {% if zs.comment and zs.comment.comment %}
+    <p>Комментарий: {{zs.comment.comment}}</p>
+    <p>Автор: {{zs.comment.User.username}} : {{zs.comment.time}}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <select class="mdb-select md-form" id="status" name="status">
+            <option value="Отклонено">Отклонить</option>
+            <option value="Подтверждено">Подтвердить</option>
+            <option value="Не обработано">Не обработано</option>
+        </select>
+        <p>Комментарий<Br>
+        <textarea name="comment" cols="40" rows="3"></textarea></p>
+        <input type="hidden" name="id" value="{{ zs.id }}">
+        <input type="hidden" name="user" value="{{user.id}}">
+        <input type="submit" value="Изменить статус" />
+    </form>
+</div>
+{% else %}
+<div class="alert alert-warning mt-2">
+    <p>Правило:{{zs.rule}} </p>
+    <p>Критичность:{{zs.riskdesc}}</p>
+    <p>Метод: {{zs.instance_metod}}<p>
+    <p>URL : {{zs.instance_url}}</p>
+    <p>Атака: {{zs.instance_attack}}</p>
+    <p>Poc: {{zs.instance_evidence}}</p>
+    <p>Дополнительная информация {{zs.instance_otherinfo}}</p>
+    <p>Текущий статус: {{zs.status}}</p>
+    {% if zs.comment and zs.comment.comment %}
+    <p>Комментарий: {{zs.comment.comment}}</p>
+    <p>Автор: {{zs.comment.User.username}} : {{zs.comment.time}}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <select class="mdb-select md-form" id="status" name="status">
+            <option value="Отклонено">Отклонить</option>
+            <option value="Подтверждено">Подтвердить</option>
+            <option value="Не обработано">Не обработано</option>
+        </select>
+        <p>Комментарий<Br>
+        <textarea name="comment" cols="40" rows="3"></textarea></p>
+        <input type="hidden" name="id" value="{{ zs.id }}">
+        <input type="hidden" name="user" value="{{user.id}}">
+        <input type="submit" value="Изменить статус" />
+    </form>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

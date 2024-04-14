@@ -1,0 +1,15 @@
+{% extends 'main/base.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<h1>Сrawl Scans</h1>
+{% for cs in crawl_scans %}
+<div class="alert alert-warning mt-2">
+    <h3>{{cs.domain| safe}}</h3>
+    <p>{{cs.status}}</p>
+    <li><a href="{% url 'main:crawl_results' cs.id %}" class="nav-link px-2">Результаты</a></li>
+</div>
+{% endfor %}
+{% endblock %}

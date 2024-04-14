@@ -1,0 +1,96 @@
+{% extends 'main/base.html' %}
+{% block title %}
+Здесь будут резы конкретного скана нуклея 
+{% endblock %}
+<style>
+    .frame {
+      border: 2px solid #000;
+      padding: 10px;
+      width: 300px;
+    }
+</style>
+
+{% block content %}
+<h1>Сканы Nuclei</h1>
+{% for ns in nuclei_triggers %}
+{% if ns.status == 'Подтверждено'%}
+<div class="alert alert-danger mt-2">
+    <p>Правило:{{ns.rule | safe}} Критичность:{{ns.severity | safe}} </p>
+    <p>Описание</p>
+    <div class="frame">
+        <p>{{ ns.description | safe}}</p>
+    </div>
+      
+    <p>Текущий статус: {{ns.status| safe}}</p>
+    <form method="post">
+        {% csrf_token %}
+        <select class="mdb-select md-form" id="status" name="status">
+            <option value="Отклонено">Отклонить</option>
+            <option value="Подтверждено">Подтвердить</option>
+            <option value="Не обработано">Не обработано</option>
+        </select>
+        {% if ns.comment and ns.comment.comment %}
+        <p>Комментарий: {{ns.comment.comment | safe}}</p>
+        <p>Автор: {{ns.comment.User.username | safe}} : {{ns.comment.time | safe}}</p>
+        {% endif %}
+        <textarea name="comment" cols="40" rows="3"></textarea></p>
+        <input type="hidden" name="id" value="{{ ns.id }}">
+        <input type="hidden" name="user" value="{{user.id}}">
+        <input type="submit" value="Изменить статус" />
+    </form>
+</div>
+{% elif ns.status == 'Отклонено' %}
+<div class="alert alert-success mt-2">
+    <h3>{{ns.domain}}</h3>
+    <p>Правило:{{ns.rule}} Критичность:{{ns.severity| safe}} </p>
+    <p>Описание</p>
+    <div class="frame">
+        <p>{{ ns.description| safe }}</p>
+    </div>
+    <p>Текущий статус: {{ns.status| safe}}</p>
+    {% if ns.comment and ns.comment.comment %}
+    <p>Комментарий: {{ns.comment.comment| safe}}</p>
+    <p>Автор: {{ns.comment.User.username| safe}} : {{ns.comment.time| safe}}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <select class="mdb-select md-form" id="status" name="status">
+            <option value="Отклонено">Отклонить</option>
+            <option value="Подтверждено">Подтвердить</option>
+            <option value="Не обработано">Не обработано</option>
+        </select>
+        <textarea name="comment" cols="40" rows="3"></textarea></p>
+        <input type="hidden" name="id" value="{{ ns.id }}">
+        <input type="hidden" name="user" value="{{user.id}}">
+        <input type="submit" value="Изменить статус" />
+    </form>
+</div>
+{% else %}
+<div class="alert alert-warning mt-2">
+    <h3>{{ns.domain| safe}}</h3>
+    <p>Правило:{{ns.rule}} Критичность:{{ns.severity| safe}} </p>
+    <p>Описание</p>
+    <div class="frame">
+        <p>{{ ns.description | safe}}</p>
+    </div>
+    <p>Текущий статус: {{ns.status| safe}}</p>
+    {% if ns.comment and ns.comment.comment %}
+    <p>Комментарий: {{ns.comment.comment| safe }}</p>
+    <p>Автор: {{ns.comment.User.username| safe}} : {{ns.comment.time| safe}}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <select class="mdb-select md-form" id="status" name="status">
+            <option value="Отклонено">Отклонить</option>
+            <option value="Подтверждено">Подтвердить</option>
+            <option value="Не обработано">Не обработано</option>
+        </select>
+        <textarea name="comment" cols="40" rows="3"></textarea></p>
+        <input type="hidden" name="user" value="{{user.id}}">
+        <input type="hidden" name="id" value="{{ ns.id }}">
+        <input type="submit" value="Изменить статус" />
+    </form>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

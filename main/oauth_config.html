@@ -1,0 +1,80 @@
+{% extends 'main/base.html' %}
+{% block title %}
+Конфигурирование oauth провайдера
+{% endblock %}
+{% block content %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+    </head>
+    <body>
+    <div class="container">
+        <h1>Configuration</h1>
+        <form method="post">
+            {% csrf_token %}
+            <label for="ip">Client login oauth url</label>
+            <input type="text" id="ip" name="ip" value={{config.IP}}>
+    
+            <label for="port">Oauth login url</label>
+            <input type="text" id="port" name="port"  value={{config.port}}>
+            <label for="port">Client callback url</label>
+            <input type="text" id="port" name="port"  value={{config.port}}>
+    
+            <label for="logins">Provider Logins</label>
+            <textarea id="logins" name="logins" rows="4" value={{config.logins}}></textarea>
+
+            <label for="passwords">ProviderPasswords:</label>
+            <textarea id="passwords" name="passwords" rows="4" value={{config.passwords}}></textarea>
+
+            <label for="csrf_type">Oauth flow</label>
+            <select id="csrf_type" name="csrf_type">
+                <option value="code">code</option>
+                <option value="implicit">implicit</option>
+            </select>
+            <button type="submit">Запустить</button>
+        </form>
+    </div>
+    </body>
+{% endblock %}

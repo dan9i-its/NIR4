@@ -1,0 +1,15 @@
+{% extends 'main/base.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<h1>Сканы Nuclei</h1>
+{% for ns in nuclei_scans %}
+<div class="alert alert-warning mt-2">
+    <h3>{{ns.domain}}</h3>
+    <p>{{ns.status}}</p>
+    <li><a href="{% url 'main:nuclei_results' ns.id %}" class="nav-link px-2">Результаты</a></li>
+</div>
+{% endfor %}
+{% endblock %}

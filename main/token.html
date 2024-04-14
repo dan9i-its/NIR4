@@ -1,0 +1,28 @@
+{% extends 'main/base.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<h1>Обновление токена</h1>
+<div class="alert alert-warning mt-2">
+    <p>Acces token: {{access_token}}</p>
+    <p>Refresh token: {{refresh_token}}</p>
+    <div id="myDiv" data-my-variable="{{ s.domains }}">
+    </div>
+    <div id="access_token" data-myvar={{access_token}}></div>
+
+    <script>
+        var access_token = document.getElementById('access_token').getAttribute('data-myvar');
+        localStorage.setItem('access_token',access_token);
+    </script>
+    <div id="refresh_token" data-myvar={{refresh_token}}></div>
+
+    <script>
+        var access_token = document.getElementById('refresh_token').getAttribute('data-myvar');
+        localStorage.setItem('refresh_token',access_token);
+    </script>
+
+</div>
+
+{% endblock %}

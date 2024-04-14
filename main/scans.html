@@ -1,0 +1,31 @@
+{% extends 'main/base.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<h1>Сканы</h1>
+{% for s in scans %}
+<div class="alert alert-warning mt-2">
+    <h3>{{s.time_start}} {{s.id}}</h3>
+    <p>{{s.status| safe}}</p>
+    <p>{{s.domains| safe}}</p>
+    <div id="myDiv" data-my-variable="{{ s.domains }}">
+    </div>
+
+    <script>
+        myVariable = document.getElementById("myDiv").getAttribute("data-my-variable");
+        console.log(myVariable)
+        var myArray = myVariable.split("\n");
+        myArray[0].replace('b', '')
+        console.log(myArray);
+    </script>
+        
+    <!-- <select class="form-select" aria-label="Default select example">
+        {% for i in myArray %}
+        <option>i</option>
+        {% endfor %}
+    </select> -->
+</div>
+{% endfor %}
+{% endblock %}

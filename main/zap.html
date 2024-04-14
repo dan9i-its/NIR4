@@ -1,0 +1,15 @@
+{% extends 'main/base.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<h1>Результаты Zap</h1>
+{% for zs in zap_scans %}
+<div class="alert alert-warning mt-2">
+    <h3>{{zs.domain}} {{zs.id}}</h3>
+    <p>{{zs.status}}</p>
+    <li><a href="{% url 'main:zap_results' zs.id %}" class="nav-link px-2">Результаты</a></li>
+</div>
+{% endfor %}
+{% endblock %}
