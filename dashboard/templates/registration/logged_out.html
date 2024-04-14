@@ -1,0 +1,7 @@
+{% extends 'registration/base.html' %}
+{% load django_bootstrap5 %}
+{% block content %}
+  <div class="alert alert-success">Сеанс работы в системе завершён</div>
+
+  <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Войти снова</a>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'registration/base.html' %}
+{% load django_bootstrap5 %}
+{% block content %}
+  {% if form.errors %}
+    <div class="alert alert-danger">Неверное имя пользователя или пароль</div>
+  {% endif %}
+  {% if next %}
+    {% if user.is_authenticated %}
+      <div class="alert alert-danger">Недостаточно прав для просмотра страницы</div>
+    {% else %}
+      <div class="alert alert-info">Необходима аутентификация</div>
+    {% endif %}
+  {% endif %}
+  <h3>Аутентификация</h3>
+  <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    {% bootstrap_form form layout='floating' %}
+    <input type="hidden" name="next" value="{{ next }}" />
+    <div class="d-flex">
+      {% bootstrap_button button_type='submit' content='Войти' %}
+      <a href="{% url 'signup:signup' %}" class="ms-auto btn btn-outline-primary">Регистрация</a>
+    </div>
+  </form>
+{% endblock %}
