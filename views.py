@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import FullScan, NucleiScan, NucleiTrigger, CrawlScan, Har, ZapScan, ZapTrigger, User, Comment, ProxyConfig
+from .models import FullScan, NucleiScan, NucleiTrigger, CrawlScan, Har, ZapScan, ZapTrigger,  Permission3, User, Model, Request, Comment, ProxyConfig, App, Field, Role, Permission
 from django.contrib.sessions.models import Session
 import subprocess
 import os
@@ -14,17 +14,17 @@ from django.db import connection
 import random
 import jwt
 from datetime import datetime, timedelta
-
+import json 
 from django_ratelimit.decorators import ratelimit
-
 import requests
 from django.http import HttpResponseBadRequest
-
+from time import sleep
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
 from .middleware import create_access_token, check_refresh
 SECRET_KEY = 'my_secret_key_123131231312313123123'
 from oauth2_provider.views.generic import ProtectedResourceView
+import re 
 
 class ApiEndpoint(ProtectedResourceView):
     def get(self, request, *args, **kwargs):
@@ -34,6 +34,253 @@ class ApiEndpoint(ProtectedResourceView):
 def oauth_sessions_generate_config(request):
     return render(request, 'main/oauth_config.html')
 
+
+
+def get_model(r):
+    match = re.search(r':[^\w]*(\w+)$', r)
+    typpe = ''
+    if match:
+        value = match.group(1)
+        typpe = 'single'
+       # print(f"Извлечь один: {value}")
+    else:
+        match = re.search(r'\[([^\]]+)\]', r)
+        if match:
+            value = match.group(1)
+         #   print(f"Извлечь все: {value}")
+            typpe = 'all'
+    return value, typpe
+
+
+def get_fields(model):
+    models = Model.objects.order_by('-id')
+    req_models = []
+    req_models.append(model)
+    tmp_models = []
+    Models = []
+    prepared_models = {}
+    for m in models:
+        Models.append(m.name)
+    db_models = Model.objects.filter(name=model)
+    for db_model in db_models:
+        lines = db_model.description.split('\n')
+        json_data = {}
+        for line in lines:
+            if line:
+                key, value = line.split(':')
+                if value in Models:
+                    tmp_models.append(value)
+                    json_data[value] = key
+                else:
+                    json_data[key] = value
+
+
+        json_str = json.dumps(json_data, indent=4)
+        prepared_models[db_model.name] = list(json_data.keys())
+    for tmp_model in tmp_models:
+        db_models = Model.objects.filter(name=tmp_model)
+        lines = db_models[0].description.split('\n')
+        json_data = {}
+        for line in lines:
+            if line:
+                key, value = line.split(':')
+                json_data[key] = value
+                if value in Models:
+                    tmp_models.append(value)
+
+        json_str = json.dumps(json_data, indent=4)
+        prepared_models[tmp_model] = list(json_data.keys())
+        tmp_models.remove(tmp_model)
+
+    return prepared_models
+
+
+def generate_request_data(prepared_models, r, field):
+    data = ''
+    queryname=''
+    if '(' not in r:
+        queryname = r.split()[1].split(':')[0]
+        data+=queryname + ' {'
+        data+=str(field)
+    data+='}'
+    return data, queryname
+
+
+def send_query(prepared_models, request, role, app_id, url='http://127.0.0.1:5555/graphql', Authorization='teacher'):
+    rolle = Role.objects.get(name=role)
+    app = App.objects.get(id=app_id)
+    fil = App.objects.get(id=1)
+    req = Request.objects.get(id=request.id)
+    URL = url
+    availabiliteis = {}
+    headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.88 Safari/537.36',
+        'Origin': 'http://127.0.0.1:5555',
+        'Referer': 'http://127.0.0.1:5555/',
+        'Connection': 'close'
+    }
+    headers['Authorization'] = Authorization
+    
+    for key in list(prepared_models.keys()):
+        fields = prepared_models[key]
+        data = ''
+        fils = []
+        for field in fields:
+            add_data, query = generate_request_data(prepared_models, request.request, field)
+            data = "{\"query\" : \"query { " + str(add_data) + " }\" ,\"variables\":null}"
+            response = requests.post(URL, headers=headers, data=data)
+            try:
+                availability = check_available(response.json(), field, query, key)
+            except Exception as err:
+                availability = False
+            fils.append({field:availability})
+        availabiliteis[request.request] = {key:fils} ### Здесь собраны все доступы. 
+        with open('Availabilities.txt', 'a') as file:
+            file.write(str(app_id) + str(rolle.id) +  str(request.id) + str(availabiliteis)+ '\n')
+        #### запись в БД
+    print("ПРОВЕРКА ОБЪЕКТА")
+    print(app_id, rolle.id, request.id, req.id)
+    print(Permission3.objects.filter(App_ID=app, Role_ID = rolle, Request_ID = request.id))
+    print(len(Permission3.objects.filter(App_ID=app, Role_ID = rolle, Request_ID = request.id))> 0) 
+    if len(Permission3.objects.filter(App_ID=app, Role_ID = rolle, Request_ID = request.id)) > 0 :
+        print("ОБЪЕКТ СУЩЕСТВУЕТ")
+        print(req)
+        old_object = Permission3.objects.filter(App_ID=app, Role_ID = rolle, Request_ID = req)
+        print(old_object[0].request == str(availabiliteis))
+        
+        if old_object[0].request == str(availabiliteis):
+            print("UPDATE TO OLD")
+            obj = old_object[0]
+            obj.status='old'
+            obj.save()
+
+        else:
+            obj = old_object[0]
+            obj.status='new'
+            obj.save()
+
+      #  if old_object[0].request == str(availabiliteis):
+      #      Permission3.objects.update(App_ID=app, Role_ID = rolle, request=str(availabiliteis), Request_ID = req, status = 'old')
+      #  else:
+      #      Permission3.objects.update(App_ID=app, Role_ID = rolle, request=str(availabiliteis), Request_ID = req, status = 'new')
+    else:
+        print("ЗААААПИИИИИСЬ")
+        print(availabiliteis)
+        #sleep(3)
+        Permission3.objects.create(App_ID=app, Role_ID = rolle, request=str(availabiliteis), Request_ID = req, status = 'new')
+    availabiliteis = {}
+
+def check_available(resp, field,query, model=None):
+    try:
+        if field in str(resp['data'][query]):
+            return True
+    except Exception as err:
+        pass 
+
+
+def role_scan(role, app_id):
+    app = App.objects.get(id=app_id)
+    requests = Request.objects.filter(App_ID=app)
+    i = 0
+    for r in requests:
+        if r.request.startswith('query'):
+            model, typpe = get_model(r.request)
+            # if i <=0: ### убрать им после дебага 
+            i+=1 
+            prepared_models = get_fields(model)
+            send_query(prepared_models, r, role, app_id)
+        if r.request.startswith('mutation'):
+            pass
+
+
+def apps(request, app_id):
+    app = App.objects.get(id=app_id)
+    roles = Role.objects.filter(App_ID=app_id)
+    new_models = []
+    new_reqs= []
+    status = "Модели не изменились"
+    if request.method == "POST":
+
+        if request.POST.get('scan'): 
+            role_scan(roles[0], app_id)
+        else: 
+            schema = request.POST.get('schema')
+            entity_pattern = re.compile(r'type (\w+) {(.*?)\}', re.S)
+            field_pattern = re.compile(r'(\w+): (\w+)')
+            entities = entity_pattern.findall(schema)
+
+            Old_Models= Model.objects.filter(App_ID=app_id)
+            print(Old_Models)
+            models_dict = {}
+            for old_model in Old_Models:
+                models_dict.update({old_model.name: old_model.description})
+            print(models_dict)
+            for entity in entities:
+                entity_name = entity[0]
+                if entity_name != 'Query'  and entity_name != 'Mutation':
+                    print(f'{entity_name}:')
+                    fields = field_pattern.findall(entity[1])
+                    desc = ''
+                    for field in fields:
+                        field_name = field[0]
+                        field_type = field[1]
+                        desc += field[0] + ':' +  field[1]+'\n'
+                        
+                        print(f'\t{field_name}: {field_type}')
+                    old_desc = models_dict.get(entity_name, '')
+                    print("DESC")
+                    print(desc)
+                    if len(models_dict) <= 0 or old_desc =='':
+                        Model.objects.create(App_ID=app, name=entity_name, description=desc )
+                    elif old_desc != desc:
+                        status = 'Модели изменились'
+                        new_models.append(entity_name)
+                        obj = Model.objects.get(name = entity_name)
+                        obj.description = desc
+                        obj.save()
+                        
+            
+
+            Old_reqs= Request.objects.filter(App_ID=app_id)
+            queries = re.findall(r'Query {\s+(.*?)\s+}', schema, re.DOTALL)
+            mutations = re.findall(r'Mutation {\s+(.*?)\s+}', schema, re.DOTALL)
+
+            print("Описания Query:")
+            try:
+                for query in queries[0].split('\n'):
+                    flag = 0 
+                    if query.strip():
+                        for old_req in Old_reqs:
+                            if old_req.request == 'query ' + query.strip():
+                                flag = 1
+                        if not flag == 1:
+                            Request.objects.create(App_ID=app, request='query ' + query.strip())
+                print("\nОписания Mutation:")
+                for mutation in mutations[0].split('\n'):
+                    flag = 0 
+                    if mutation.strip():
+                        for old_req in Old_reqs:
+                            if old_req.request == 'mutation ' + mutation.strip():
+                                flag = 1
+                        if not flag == 1:
+                            Request.objects.create(App_ID=app, request='mutation '  + mutation.strip())
+            except Exception as err:
+                pass
+        
+    models = Model.objects.filter(App_ID=app_id)
+    requests = Request.objects.filter(App_ID=app_id)
+    return render(request, 'main/apps.html', {'app':app, 'roles': roles, 'new_models': new_models,
+    'models': models, 'status': status, 'requests': requests })
+
+def role(request, role_id):
+    role = Role.objects.get(id=role_id)
+    app = App.objects.get(id=role.App_ID.id)
+    requests = Request.objects.filter(App_ID=role.App_ID)
+
+    permissions  = Permission3.objects.filter(App_ID = role.App_ID.id, Role_ID=role_id)
+    return render(request, 'main/role.html', {'role': role, 'requests':requests, 'permissions': permissions})
 
 
 @login_required
@@ -615,6 +862,8 @@ def crawl3(request):
     crawl_scans = CrawlScan.objects.order_by('-id')
     print(len(crawl_scans))
     return render(request, 'main/crawl.html', {'title': 'Crawl Scans', 'crawl_scans': crawl_scans})
+
+
 
 
 
