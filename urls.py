@@ -49,8 +49,9 @@ urlpatterns = [
     path('get_token', views.get_token, name='get_token'),
     path('update_token', views.update_token, name='update_token'),
     path('config_proxy/<int:config_proxy_id>/', views.config_proxy, name='config_proxy'),
-    path('rce', views.rce, name='rce'),
     path('oauth_sessions_generate_config', views.oauth_sessions_generate_config, name='oauth_sessions_generate_config'),
+    path('apps/<int:app_id>/', views.apps, name='apps'),
+    path('role/<int:role_id>/', views.role, name='role'),
 
     path('scans1', views.scans1, name='scans1'),
     path('ssrf1', views.ssrf1, name='ssrf1'),
